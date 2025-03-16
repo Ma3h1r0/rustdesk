@@ -198,37 +198,40 @@ class _ServerPageState extends State<ServerPage> {
   @override
   Widget build(BuildContext context) {
     checkService();
-    return ChangeNotifierProvider.value(
-        value: gFFI.serverModel,
-        child: Consumer<ServerModel>(
-            builder: (context, serverModel, child) => Stack(
-                  children: [
-                    SingleChildScrollView(
-                      controller: gFFI.serverModel.controller,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            buildPresetPasswordWarningMobile(),
-                            gFFI.serverModel.isStart
-                                ? ServerInfo()
-                                : ServiceNotRunningNotification(),
-                            const ConnectionManager(),
-                            const PermissionChecker(),
-                            // 添加锁屏和黑屏控制按钮
-                            if (gFFI.serverModel.isStart) 
-                              buildScreenControlButtons(),
-                            SizedBox.fromSize(size: const Size(0, 15.0)),
-                          ],
+    return Stack(
+      children: [
+        ChangeNotifierProvider.value(
+            value: gFFI.serverModel,
+            child: Consumer<ServerModel>(
+                builder: (context, serverModel, child) => Stack(
+                      children: [
+                        SingleChildScrollView(
+                          controller: gFFI.serverModel.controller,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                buildPresetPasswordWarningMobile(),
+                                gFFI.serverModel.isStart
+                                    ? ServerInfo()
+                                    : ServiceNotRunningNotification(),
+                                const ConnectionManager(),
+                                const PermissionChecker(),
+                                // 添加锁屏和黑屏控制按钮
+                                if (gFFI.serverModel.isStart) 
+                                  buildScreenControlButtons(),
+                                SizedBox.fromSize(size: const Size(0, 15.0)),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    // 黑屏覆盖层
-                    Obx(() => blackScreenController.isBlackScreenActive.value
-                        ? BlackScreenOverlay()
-                        : SizedBox.shrink()),
-                  ],
-                )));
+                        // 黑屏覆盖层
+                        BlackScreenOverlay(),
+                      ],
+                    ))),
+        BlackScreenOverlay(),
+      ],
+    );
   }
   
   Widget buildScreenControlButtons() {
@@ -280,33 +283,20 @@ class _ServerPageState extends State<ServerPage> {
 class BlackScreenOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.sync,
-              size: 80,
-              color: Colors.white,
-            ),
-            SizedBox(height: 20),
-            Text(
-              translate("正在对接办公中心网络"),
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 10),
-            Text(
-              translate("请勿触碰手机屏幕"),
-              style: TextStyle(color: Colors.white, fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
+    return Obx(() {
+      return blackScreenController.isBlackScreenActive.value
+          ? Container(
+              color: Colors.black,
+              child: Center(
+                child: Text(
+                  translate("Screen locked. Only remote control allowed."),
+                  style: TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          : SizedBox.shrink();
+    });
   }
 }
 

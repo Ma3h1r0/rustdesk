@@ -726,10 +726,11 @@ pub fn session_lock_screen() -> ResultType<()> {
     #[cfg(target_os = "android")]
     {
         let mut misc = Misc::new();
-        misc.lock_screen = true;
+        misc.set_lock_screen(true);
         let mut msg = Message::new();
         msg.set_misc(misc);
-        send_to_cm(msg);
+        let data = Data::new_message(msg);
+        crate::ui_interface::send_to_cm(&data);
     }
     Ok(())
 }
@@ -739,10 +740,11 @@ pub fn session_toggle_black_screen(enable: bool) -> ResultType<()> {
     #[cfg(target_os = "android")]
     {
         let mut misc = Misc::new();
-        misc.black_screen = enable;
+        misc.set_black_screen(enable);
         let mut msg = Message::new();
         msg.set_misc(misc);
-        send_to_cm(msg);
+        let data = Data::new_message(msg);
+        crate::ui_interface::send_to_cm(&data);
     }
     Ok(())
 }
