@@ -67,13 +67,12 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "enable_black_screen" -> {
-                        // 通知 Flutter 启用黑屏
-                        blackScreenController?.enableBlackScreen()
+                        // 启用黑屏
+                        // 可以使用覆盖层或其他方式实现
                         result.success(null)
                     }
                     "disable_black_screen" -> {
-                        // 通知 Flutter 禁用黑屏
-                        blackScreenController?.disableBlackScreen()
+                        // 禁用黑屏
                         result.success(null)
                     }
                     else -> result.notImplemented()

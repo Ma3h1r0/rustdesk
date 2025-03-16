@@ -2206,3 +2206,12 @@ pub(super) mod async_tasks {
         );
     }
 }
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub fn send_msg_to_flutter(msg: Message) {
+    let mut misc = Misc::new();
+    misc.set_data(msg.write_to_bytes().unwrap_or_default());
+    let mut msg_out = Message::new();
+    msg_out.set_misc(misc);
+    send_to_ui(msg_out);
+}

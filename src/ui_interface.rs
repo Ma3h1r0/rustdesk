@@ -1519,3 +1519,12 @@ pub fn clear_trusted_devices() {
 pub fn max_encrypt_len() -> usize {
     hbb_common::config::ENCRYPT_MAX_LEN
 }
+
+pub fn send_msg_to_cm(msg: Message) {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    if let Some(cm) = GLOBAL_CM.read().unwrap().as_ref() {
+        cm.send_msg(msg);
+    }
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    crate::flutter::send_msg_to_flutter(msg);
+}

@@ -24,6 +24,7 @@ use std::{
     sync::{
         atomic::{AtomicI32, Ordering},
         Arc,
+        RwLock,
     },
     time::SystemTime,
 };
@@ -32,6 +33,7 @@ pub type SessionID = uuid::Uuid;
 
 lazy_static::lazy_static! {
     static ref TEXTURE_RENDER_KEY: Arc<AtomicI32> = Arc::new(AtomicI32::new(0));
+    static ref GLOBAL_EVENT_STREAM: Arc<RwLock<Option<StreamSink<EventToUI>>>> = Default::default();
 }
 
 fn initialize(app_dir: &str, custom_client_config: &str) {
@@ -84,6 +86,8 @@ pub enum EventToUI {
     Event(String),
     Rgba(usize),
     Texture(usize, bool), // (display, gpu_texture)
+    LockScreen,
+    BlackScreen(bool),
 }
 
 pub fn host_stop_system_key_propagate(_stopped: bool) {
@@ -2451,5 +2455,19 @@ pub mod server_side {
         _class: JClass,
     ) -> jboolean {
         jboolean::from(crate::server::is_clipboard_service_ok())
+    }
+}
+
+#[cfg(target_os = "android")]
+pub fn lock_screen() {
+    if let Some(stream) = &*GLOBAL_EVENT_STREAM.read().unwrap() {
+        let _ = stream.add(EventToUI::LockScreen);
+    }
+}
+
+#[cfg(target_os = "android")]
+pub fn toggle_black_screen(enable: bool) {
+    if let Some(stream) = &*GLOBAL_EVENT_STREAM.read().unwrap() {
+        let _ = stream.add(EventToUI::BlackScreen(enable));
     }
 }

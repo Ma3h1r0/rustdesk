@@ -30,6 +30,14 @@ class BlackScreenController extends GetxController {
   void disableBlackScreen() {
     isBlackScreenActive.value = false;
   }
+
+  void handleRustEvent(String event) {
+    if (event == "enable_black_screen") {
+      isBlackScreenActive.value = true;
+    } else if (event == "disable_black_screen") {
+      isBlackScreenActive.value = false;
+    }
+  }
 }
 
 // 全局黑屏控制器
