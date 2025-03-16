@@ -2210,20 +2210,20 @@ pub(super) mod async_tasks {
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub fn send_msg_to_flutter(msg: Message) {
     let mut misc = Misc::new();
-    // 使用 set_data 方法设置数据
+    // 使用正确的方法设置数据
     let bytes = hbb_common::protobuf::Message::write_to_bytes(&msg).unwrap_or_default();
-    misc.set_data(bytes);
+    misc.data = bytes;
     let mut msg_out = Message::new();
     msg_out.set_misc(misc);
     // 使用正确的函数发送消息
     send_to_ui(msg_out);
 }
 
-// 在 flutter.rs 中添加 send_to_ui 函数
+// 修复 send_to_ui 函数
 pub fn send_to_ui(msg: hbb_common::message_proto::Message) {
     // 实现发送消息到 UI 的逻辑
     #[cfg(feature = "flutter")]
-    if let Some(stream) = &*GLOBAL_EVENT_STREAM.read().unwrap() {
+    if let Some(stream) = GLOBAL_EVENT_STREAM.read().unwrap().get("event") {
         let bytes = msg.write_to_bytes().unwrap_or_default();
         let msg_str = format!("msg:{}", base64::encode(&bytes));
         stream.add(msg_str);

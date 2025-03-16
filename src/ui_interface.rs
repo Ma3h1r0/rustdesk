@@ -31,6 +31,7 @@ use crate::common::SOFTWARE_UPDATE_URL;
 use crate::hbbs_http::account;
 #[cfg(not(any(target_os = "ios")))]
 use crate::ipc;
+use crate::ui_cm_interface::GLOBAL_CM;
 
 type Message = RendezvousMessage;
 
@@ -1529,7 +1530,7 @@ pub fn send_msg_to_cm(msg: Message) {
     {
         if let Ok(bytes) = hbb_common::protobuf::Message::write_to_bytes(&msg) {
             let mut misc = hbb_common::message_proto::Misc::new();
-            misc.set_data(bytes);
+            misc.data = bytes;
             let mut msg_out = hbb_common::message_proto::Message::new();
             msg_out.set_misc(misc);
             crate::flutter::send_to_ui(msg_out);

@@ -30,7 +30,7 @@ use service::ServiceTmpl;
 use service::{EmptyExtraFieldService, GenericService, Service, Subscriber};
 use video_service::VideoSource;
 
-use crate::ipc;
+use crate::ipc::{self, Data};
 
 pub mod audio_service;
 cfg_if::cfg_if! {
