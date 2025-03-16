@@ -21,23 +21,19 @@ class BlackScreenController extends GetxController {
   
   void toggleBlackScreen() {
     isBlackScreenActive.value = !isBlackScreenActive.value;
-    // 通知远程端黑屏状态变化
-    if (isBlackScreenActive.value) {
-      bind.sessionToggleBlackScreen(enable: true);
-    } else {
-      bind.sessionToggleBlackScreen(enable: false);
-    }
   }
   
-  // 只允许远程端解除黑屏
+  void enableBlackScreen() {
+    isBlackScreenActive.value = true;
+  }
+  
   void disableBlackScreen() {
     isBlackScreenActive.value = false;
-    bind.sessionToggleBlackScreen(enable: false);
   }
 }
 
 // 全局黑屏控制器
-final blackScreenController = BlackScreenController();
+final blackScreenController = Get.put(BlackScreenController());
 
 class ServerPage extends StatefulWidget implements PageShape {
   @override

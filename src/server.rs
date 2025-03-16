@@ -31,6 +31,7 @@ use service::{EmptyExtraFieldService, GenericService, Service, Subscriber};
 use video_service::VideoSource;
 
 use crate::ipc::Data;
+use crate::ui_interface::send_to_cm;
 
 pub mod audio_service;
 cfg_if::cfg_if! {
@@ -725,7 +726,7 @@ pub fn session_lock_screen() -> ResultType<()> {
     #[cfg(target_os = "android")]
     {
         let mut misc = Misc::new();
-        misc.set_lock_screen(true);
+        misc.lock_screen = true;
         let mut msg = Message::new();
         msg.set_misc(misc);
         send_to_cm(msg);
@@ -738,7 +739,7 @@ pub fn session_toggle_black_screen(enable: bool) -> ResultType<()> {
     #[cfg(target_os = "android")]
     {
         let mut misc = Misc::new();
-        misc.set_black_screen(enable);
+        misc.black_screen = enable;
         let mut msg = Message::new();
         msg.set_misc(misc);
         send_to_cm(msg);

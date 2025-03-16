@@ -2473,8 +2473,7 @@ Widget _buildPointerTrackWidget(Widget child, FFI? ffi) {
 }
 
 // 在工具栏中添加黑屏控制按钮
-Widget _buildBlackScreenButton(FFI ffi) {
-  final id = ffi.id;
+Widget _buildBlackScreenButton(BuildContext context, FFI ffi) {
   return IconButton(
     icon: Icon(Icons.visibility_off),
     tooltip: translate('Black Screen'),

@@ -63,6 +63,22 @@ class MainActivity : FlutterActivity() {
         )
         initFlutterChannel(flutterMethodChannel!!)
         thread { setCodecInfo() }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.carriez.flutter_hbb/method")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "enable_black_screen" -> {
+                        // 通知 Flutter 启用黑屏
+                        blackScreenController?.enableBlackScreen()
+                        result.success(null)
+                    }
+                    "disable_black_screen" -> {
+                        // 通知 Flutter 禁用黑屏
+                        blackScreenController?.disableBlackScreen()
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
     }
 
     override fun onResume() {
@@ -316,7 +332,7 @@ class MainActivity : FlutterActivity() {
                 codecObject.put("mime_type", mime_type)
                 val caps = codec.getCapabilitiesForType(mime_type)
                 if (codec.isEncoder) {
-                    // Encoder‘s max_height and max_width are interchangeable
+                    // Encoder's max_height and max_width are interchangeable
                     if (!caps.videoCapabilities.isSizeSupported(w,h) && !caps.videoCapabilities.isSizeSupported(h,w)) {
                         return@forEach
                     }
