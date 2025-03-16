@@ -2210,8 +2210,11 @@ pub(super) mod async_tasks {
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub fn send_msg_to_flutter(msg: Message) {
     let mut misc = Misc::new();
-    misc.set_data(msg.write_to_bytes().unwrap_or_default());
+    // 使用正确的方法设置数据
+    let bytes = hbb_common::protobuf::Message::write_to_bytes(&msg).unwrap_or_default();
+    misc.data = bytes;
     let mut msg_out = Message::new();
     msg_out.set_misc(misc);
-    send_to_ui(msg_out);
+    // 使用正确的函数发送消息
+    super::flutter::send_to_ui(msg_out);
 }

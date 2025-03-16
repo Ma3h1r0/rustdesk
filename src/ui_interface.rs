@@ -1526,5 +1526,11 @@ pub fn send_msg_to_cm(msg: Message) {
         cm.send_msg(msg);
     }
     #[cfg(any(target_os = "android", target_os = "ios"))]
-    crate::flutter::send_msg_to_flutter(msg);
+    let mut msg_out = hbb_common::message_proto::Message::new();
+    if let Ok(bytes) = hbb_common::protobuf::Message::write_to_bytes(&msg) {
+        let mut misc = hbb_common::message_proto::Misc::new();
+        misc.data = bytes;
+        msg_out.set_misc(misc);
+        super::flutter::send_to_ui(msg_out);
+    }
 }

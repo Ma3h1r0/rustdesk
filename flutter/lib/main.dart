@@ -574,3 +574,10 @@ Widget keyListenerBuilder(BuildContext context, Widget? child) {
     },
   );
 }
+
+void handleGlobalEvent(String event) {
+  if (event.startsWith("enable_black_screen") || event.startsWith("disable_black_screen")) {
+    blackScreenController.handleRustEvent(event);
+  }
+  // 处理其他事件...
+}
