@@ -122,6 +122,10 @@ class ServerModel with ChangeNotifier {
 
   WeakReference<FFI> parent;
 
+  // 添加黑屏状态
+  bool _isBlackScreen = false;
+  bool get isBlackScreen => _isBlackScreen;
+
   ServerModel(this.parent) {
     _emptyIdShow = translate("Generating ...");
     _serverId = IDTextEditingController(text: _emptyIdShow);
@@ -784,6 +788,14 @@ class ServerModel with ChangeNotifier {
       } else {
         WakelockPlus.disable();
       }
+    }
+  }
+
+  // 设置黑屏状态
+  void setBlackScreen(bool value) {
+    if (_isBlackScreen != value) {
+      _isBlackScreen = value;
+      notifyListeners();
     }
   }
 }

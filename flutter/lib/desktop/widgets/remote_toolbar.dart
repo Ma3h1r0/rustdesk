@@ -2471,3 +2471,40 @@ Widget _buildPointerTrackWidget(Widget child, FFI? ffi) {
     ),
   );
 }
+
+// 在工具栏中添加黑屏控制按钮
+Widget _buildBlackScreenButton(FFI ffi) {
+  final id = ffi.id;
+  return IconButton(
+    icon: Icon(Icons.visibility_off),
+    tooltip: translate('Black Screen'),
+    onPressed: () {
+      showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.visibility_off),
+                title: Text(translate('Enable Black Screen')),
+                onTap: () {
+                  bind.sessionToggleBlackScreen(enable: true);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.visibility),
+                title: Text(translate('Disable Black Screen')),
+                onTap: () {
+                  bind.sessionToggleBlackScreen(enable: false);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}

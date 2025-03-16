@@ -247,15 +247,25 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
     final customClientSection = CustomSettingsSection(
         child: Column(
       children: [
-        if (bind.isCustomClient())
-          Align(
-            alignment: Alignment.center,
-            child: loadPowered(context),
-          ),
         Align(
           alignment: Alignment.center,
-          child: loadLogo(),
-        )
+          child: Image.asset(
+            'assets/logo.png',
+            width: 80,
+            height: 80,
+          ),
+        ),
+        SizedBox(height: 10),
+        Text(
+          'Yemao Remote Control',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 5),
+        Text(
+          '© 2023-2024 Yemao Technology',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+        SizedBox(height: 20),
       ],
     ));
     final List<AbstractSettingsTile> enhancementsTiles = [];
@@ -917,157 +927,188 @@ void showThemeSettings(OverlayDialogManager dialogManager) async {
   }, backDismiss: true, clickMaskDismiss: true);
 }
 
-void showAbout(OverlayDialogManager dialogManager) {
-  dialogManager.show((setState, close, context) {
-    return CustomAlertDialog(
-      title: Text(translate('About RustDesk')),
-      content: Wrap(direction: Axis.vertical, spacing: 12, children: [
-        Text('Version: $version'),
-        InkWell(
-            onTap: () async {
-              const url = 'https://rustdesk.com/';
-              await launchUrl(Uri.parse(url));
-            },
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('rustdesk.com',
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                  )),
-            )),
-      ]),
-      actions: [],
-    );
-  }, clickMaskDismiss: true, backDismiss: true);
-}
-
-class ScanButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.qr_code_scanner),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (BuildContext context) => ScanPage(),
-          ),
-        );
-      },
-    );
-  }
-}
-
 class _DisplayPage extends StatefulWidget {
   const _DisplayPage();
 
   @override
-  State<_DisplayPage> createState() => __DisplayPageState();
+  State<_DisplayPage> createState() => _DisplayPageState();
 }
 
-class __DisplayPageState extends State<_DisplayPage> {
+class _DisplayPageState extends State<_DisplayPage> {
   @override
   Widget build(BuildContext context) {
-    final Map codecsJson = jsonDecode(bind.mainSupportedHwdecodings());
-    final h264 = codecsJson['h264'] ?? false;
-    final h265 = codecsJson['h265'] ?? false;
-    var codecList = [
-      _RadioEntry('Auto', 'auto'),
-      _RadioEntry('VP8', 'vp8'),
-      _RadioEntry('VP9', 'vp9'),
-      _RadioEntry('AV1', 'av1'),
-      if (h264) _RadioEntry('H264', 'h264'),
-      if (h265) _RadioEntry('H265', 'h265')
-    ];
-    RxBool showCustomImageQuality = false.obs;
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icon(Icons.arrow_back_ios)),
-        title: Text(translate('Display Settings')),
         centerTitle: true,
+        title: Text(translate('Display Settings')),
       ),
       body: SettingsList(sections: [
         SettingsSection(
+          title: Text(translate('Image Quality')),
           tiles: [
-            _getPopupDialogRadioEntry(
-              title: 'Default View Style',
-              list: [
-                _RadioEntry('Scale original', kRemoteViewStyleOriginal),
-                _RadioEntry('Scale adaptive', kRemoteViewStyleAdaptive)
-              ],
-              getter: () =>
-                  bind.mainGetUserDefaultOption(key: kOptionViewStyle),
-              asyncSetter: isOptionFixed(kOptionViewStyle)
-                  ? null
-                  : (value) async {
-                      await bind.mainSetUserDefaultOption(
-                          key: kOptionViewStyle, value: value);
-                    },
-            ),
-            _getPopupDialogRadioEntry(
-              title: 'Default Image Quality',
-              list: [
-                _RadioEntry('Good image quality', kRemoteImageQualityBest),
-                _RadioEntry('Balanced', kRemoteImageQualityBalanced),
-                _RadioEntry('Optimize reaction time', kRemoteImageQualityLow),
-                _RadioEntry('Custom', kRemoteImageQualityCustom),
-              ],
-              getter: () {
-                final v =
-                    bind.mainGetUserDefaultOption(key: kOptionImageQuality);
-                showCustomImageQuality.value = v == kRemoteImageQualityCustom;
-                return v;
+            SettingsTile(
+              title: Text(translate('Codec preference')),
+              value: Text(translate(codecPreference())),
+              onPressed: (context) {
+                showCodecPreferences(context);
               },
-              asyncSetter: isOptionFixed(kOptionImageQuality)
-                  ? null
-                  : (value) async {
-                      await bind.mainSetUserDefaultOption(
-                          key: kOptionImageQuality, value: value);
-                      showCustomImageQuality.value =
-                          value == kRemoteImageQualityCustom;
-                    },
-              tail: customImageQualitySetting(),
-              showTail: showCustomImageQuality,
-              notCloseValue: kRemoteImageQualityCustom,
             ),
-            _getPopupDialogRadioEntry(
-              title: 'Default Codec',
-              list: codecList,
-              getter: () =>
-                  bind.mainGetUserDefaultOption(key: kOptionCodecPreference),
-              asyncSetter: isOptionFixed(kOptionCodecPreference)
-                  ? null
-                  : (value) async {
-                      await bind.mainSetUserDefaultOption(
-                          key: kOptionCodecPreference, value: value);
-                    },
+            SettingsTile(
+              title: Text(translate('Image quality')),
+              value: Text(translate(imageQuality())),
+              onPressed: (context) {
+                showImageQuality(context);
+              },
             ),
           ],
-        ),
-        SettingsSection(
-          title: Text(translate('Other Default Options')),
-          tiles:
-              otherDefaultSettings().map((e) => otherRow(e.$1, e.$2)).toList(),
         ),
       ]),
     );
   }
 
-  SettingsTile otherRow(String label, String key) {
-    final value = bind.mainGetUserDefaultOption(key: key) == 'Y';
-    final isOptFixed = isOptionFixed(key);
-    return SettingsTile.switchTile(
-      initialValue: value,
-      title: Text(translate(label)),
-      onToggle: isOptFixed
-          ? null
-          : (b) async {
-              await bind.mainSetUserDefaultOption(
-                  key: key, value: b ? 'Y' : defaultOptionNo);
-              setState(() {});
-            },
+  String codecPreference() {
+    final v = bind.mainGetUserDefaultOption(key: kOptionCodecPreference);
+    if (v == 'vp8') {
+      return 'VP8';
+    } else if (v == 'vp9') {
+      return 'VP9';
+    } else if (v == 'h264') {
+      return 'H264';
+    } else if (v == 'h265') {
+      return 'H265';
+    } else {
+      return 'Auto';
+    }
+  }
+
+  String imageQuality() {
+    final v = bind.mainGetUserDefaultOption(key: kOptionImageQuality);
+    if (v == 'low') {
+      return 'Low';
+    } else if (v == 'best') {
+      return 'Best';
+    } else if (v == 'balanced') {
+      return 'Balanced';
+    } else {
+      return 'Balanced';
+    }
+  }
+
+  void showCodecPreferences(BuildContext context) {
+    final initialValue =
+        bind.mainGetUserDefaultOption(key: kOptionCodecPreference);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: Text(translate('Codec preference')),
+          children: [
+            RadioListTile(
+              title: Text('Auto'),
+              value: 'auto',
+              groupValue: initialValue,
+              onChanged: (value) async {
+                await bind.mainSetUserDefaultOption(
+                    key: kOptionCodecPreference, value: value.toString());
+                Navigator.pop(context);
+                setState(() {});
+              },
+            ),
+            RadioListTile(
+              title: Text('VP8'),
+              value: 'vp8',
+              groupValue: initialValue,
+              onChanged: (value) async {
+                await bind.mainSetUserDefaultOption(
+                    key: kOptionCodecPreference, value: value.toString());
+                Navigator.pop(context);
+                setState(() {});
+              },
+            ),
+            RadioListTile(
+              title: Text('VP9'),
+              value: 'vp9',
+              groupValue: initialValue,
+              onChanged: (value) async {
+                await bind.mainSetUserDefaultOption(
+                    key: kOptionCodecPreference, value: value.toString());
+                Navigator.pop(context);
+                setState(() {});
+              },
+            ),
+            RadioListTile(
+              title: Text('H264'),
+              value: 'h264',
+              groupValue: initialValue,
+              onChanged: (value) async {
+                await bind.mainSetUserDefaultOption(
+                    key: kOptionCodecPreference, value: value.toString());
+                Navigator.pop(context);
+                setState(() {});
+              },
+            ),
+            RadioListTile(
+              title: Text('H265'),
+              value: 'h265',
+              groupValue: initialValue,
+              onChanged: (value) async {
+                await bind.mainSetUserDefaultOption(
+                    key: kOptionCodecPreference, value: value.toString());
+                Navigator.pop(context);
+                setState(() {});
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showImageQuality(BuildContext context) {
+    final initialValue =
+        bind.mainGetUserDefaultOption(key: kOptionImageQuality);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: Text(translate('Image quality')),
+          children: [
+            RadioListTile(
+              title: Text(translate('Low')),
+              value: 'low',
+              groupValue: initialValue,
+              onChanged: (value) async {
+                await bind.mainSetUserDefaultOption(
+                    key: kOptionImageQuality, value: value.toString());
+                Navigator.pop(context);
+                setState(() {});
+              },
+            ),
+            RadioListTile(
+              title: Text(translate('Balanced')),
+              value: 'balanced',
+              groupValue: initialValue,
+              onChanged: (value) async {
+                await bind.mainSetUserDefaultOption(
+                    key: kOptionImageQuality, value: value.toString());
+                Navigator.pop(context);
+                setState(() {});
+              },
+            ),
+            RadioListTile(
+              title: Text(translate('Best')),
+              value: 'best',
+              groupValue: initialValue,
+              onChanged: (value) async {
+                await bind.mainSetUserDefaultOption(
+                    key: kOptionImageQuality, value: value.toString());
+                Navigator.pop(context);
+                setState(() {});
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

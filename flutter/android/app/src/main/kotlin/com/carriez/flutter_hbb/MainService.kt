@@ -726,4 +726,27 @@ class MainService : Service() {
             .build()
         notificationManager.notify(DEFAULT_NOTIFY_ID, notification)
     }
+
+    private fun handleMiscMessage(msg: Message) {
+        val misc = msg.misc
+        if (misc.hasLockScreen() && misc.lockScreen) {
+            InputService.lockScreen()
+        }
+        if (misc.hasBlackScreen()) {
+            if (misc.blackScreen) {
+                // 通知Flutter启用黑屏
+                MainActivity.flutterMethodChannel?.invokeMethod("enable_black_screen", null)
+            } else {
+                // 通知Flutter禁用黑屏
+                MainActivity.flutterMethodChannel?.invokeMethod("disable_black_screen", null)
+            }
+        }
+    }
+
+    private fun handleMessage(msg: Message) {
+        if (msg.hasMisc()) {
+            handleMiscMessage(msg)
+        }
+        // 其他消息处理...
+    }
 }

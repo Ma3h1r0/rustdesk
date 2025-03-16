@@ -110,6 +110,9 @@ Future<void> main(List<String> args) async {
     }
     runMainApp(true);
   }
+
+  // 初始化平台配置，设置固定服务器
+  initializePlatformConfig();
 }
 
 Future<void> initEnv(String appType) async {

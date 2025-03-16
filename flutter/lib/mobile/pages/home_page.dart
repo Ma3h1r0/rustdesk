@@ -7,7 +7,6 @@ import '../../common.dart';
 import '../../common/widgets/chat_page.dart';
 import '../../models/platform_model.dart';
 import '../../models/state_model.dart';
-import 'connection_page.dart';
 
 abstract class PageShape extends Widget {
   final String title = "";
@@ -25,13 +24,14 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+  // 默认选中共享屏幕页面
   var _selectedIndex = 0;
   int get selectedIndex => _selectedIndex;
   final List<PageShape> _pages = [];
   int _chatPageTabIndex = -1;
   bool get isChatPageCurrentTab => isAndroid
       ? _selectedIndex == _chatPageTabIndex
-      : false; // change this when ios have chat page
+      : false;
 
   void refreshPages() {
     setState(() {
@@ -47,15 +47,16 @@ class HomePageState extends State<HomePage> {
 
   void initPages() {
     _pages.clear();
-    if (!bind.isIncomingOnly()) {
-      _pages.add(ConnectionPage(
-        appBarActions: [],
-      ));
-    }
-    if (isAndroid && !bind.isOutgoingOnly()) {
+    if (isAndroid) {
+      // 首先添加服务器页面（共享屏幕）
+      _pages.add(ServerPage());
+      
+      // 然后添加聊天页面
       _chatPageTabIndex = _pages.length;
-      _pages.addAll([ChatPage(type: ChatPageType.mobileMain), ServerPage()]);
+      _pages.add(ChatPage(type: ChatPageType.mobileMain));
     }
+    
+    // 最后添加设置页面
     _pages.add(SettingsPage());
   }
 
@@ -73,7 +74,6 @@ class HomePageState extends State<HomePage> {
           return false;
         },
         child: Scaffold(
-          // backgroundColor: MyTheme.grayBg,
           appBar: AppBar(
             centerTitle: true,
             title: appTitle(),
@@ -87,10 +87,9 @@ class HomePageState extends State<HomePage> {
                 .toList(),
             currentIndex: _selectedIndex,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: MyTheme.accent, //
+            selectedItemColor: MyTheme.accent,
             unselectedItemColor: MyTheme.darkGray,
             onTap: (index) => setState(() {
-              // close chat overlay when go chat page
               if (_selectedIndex != index) {
                 _selectedIndex = index;
                 if (isChatPageCurrentTab) {
@@ -155,86 +154,16 @@ class HomePageState extends State<HomePage> {
 }
 
 class WebHomePage extends StatelessWidget {
-  final connectionPage =
-      ConnectionPage(appBarActions: <Widget>[const WebSettingsPage()]);
-
   @override
   Widget build(BuildContext context) {
     stateGlobal.isInMainPage = true;
-    handleUnilink(context);
     return Scaffold(
-      // backgroundColor: MyTheme.grayBg,
       appBar: AppBar(
         centerTitle: true,
         title: Text("${bind.mainGetAppNameSync()} (Preview)"),
-        actions: connectionPage.appBarActions,
+        actions: [const WebSettingsPage()],
       ),
-      body: connectionPage,
+      body: ServerPage(),
     );
-  }
-
-  handleUnilink(BuildContext context) {
-    if (webInitialLink.isEmpty) {
-      return;
-    }
-    final link = webInitialLink;
-    webInitialLink = '';
-    final splitter = ["/#/", "/#", "#/", "#"];
-    var fakelink = '';
-    for (var s in splitter) {
-      if (link.contains(s)) {
-        var list = link.split(s);
-        if (list.length < 2 || list[1].isEmpty) {
-          return;
-        }
-        list.removeAt(0);
-        fakelink = "rustdesk://${list.join(s)}";
-        break;
-      }
-    }
-    if (fakelink.isEmpty) {
-      return;
-    }
-    final uri = Uri.tryParse(fakelink);
-    if (uri == null) {
-      return;
-    }
-    final args = urlLinkToCmdArgs(uri);
-    if (args == null || args.isEmpty) {
-      return;
-    }
-    bool isFileTransfer = false;
-    bool isViewCamera = false;
-    String? id;
-    String? password;
-    for (int i = 0; i < args.length; i++) {
-      switch (args[i]) {
-        case '--connect':
-        case '--play':
-          isFileTransfer = false;
-          id = args[i + 1];
-          i++;
-          break;
-        case '--file-transfer':
-          isFileTransfer = true;
-          id = args[i + 1];
-          i++;
-          break;
-        case '--view-camera':
-          isViewCamera = true;
-          id = args[i + 1];
-          i++;
-          break;
-        case '--password':
-          password = args[i + 1];
-          i++;
-          break;
-        default:
-          break;
-      }
-    }
-    if (id != null) {
-      connect(context, id, isFileTransfer: isFileTransfer, isViewCamera: isViewCamera, password: password);
-    }
   }
 }

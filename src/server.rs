@@ -137,7 +137,7 @@ async fn accept_connection_(server: ServerPtr, socket: Stream, secure: bool) -> 
     drop(socket);
     // even we drop socket, below still may fail if not use reuse_addr,
     // there is TIME_WAIT before socket really released, so sometimes we
-    // see “Only one usage of each socket address is normally permitted” on windows sometimes,
+    // see "Only one usage of each socket address is normally permitted" on windows sometimes,
     let listener = new_listener(local_addr, true).await?;
     log::info!("Server listening on: {}", &listener.local_addr()?);
     if let Ok((stream, addr)) = timeout(CONNECT_TIMEOUT, listener.accept()).await? {
@@ -718,4 +718,30 @@ pub async fn stop_main_window_process() {
             log::error!("kill failed: {}", e);
         }
     }
+}
+
+/// 锁定屏幕，禁用触摸输入
+pub fn session_lock_screen() -> ResultType<()> {
+    #[cfg(target_os = "android")]
+    {
+        let mut misc = Misc::new();
+        misc.set_lock_screen(true);
+        let mut msg = Message::new();
+        msg.set_misc(misc);
+        send_to_cm(msg);
+    }
+    Ok(())
+}
+
+/// 切换黑屏模式
+pub fn session_toggle_black_screen(enable: bool) -> ResultType<()> {
+    #[cfg(target_os = "android")]
+    {
+        let mut misc = Misc::new();
+        misc.set_black_screen(enable);
+        let mut msg = Message::new();
+        msg.set_misc(misc);
+        send_to_cm(msg);
+    }
+    Ok(())
 }

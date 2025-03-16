@@ -91,6 +91,8 @@ class InputService : AccessibilityService() {
 
     private val volumeController: VolumeController by lazy { VolumeController(applicationContext.getSystemService(AUDIO_SERVICE) as AudioManager) }
 
+    private var isScreenLocked = false
+
     @RequiresApi(Build.VERSION_CODES.N)
     fun onMouseInput(mask: Int, _x: Int, _y: Int) {
         val x = max(0, _x)
@@ -658,8 +660,11 @@ class InputService : AccessibilityService() {
         return success
     }
 
-
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        if (isScreenLocked) {
+            return
+        }
+        // 原有的处理逻辑
     }
 
     override fun onServiceConnected() {
@@ -687,4 +692,15 @@ class InputService : AccessibilityService() {
     }
 
     override fun onInterrupt() {}
+
+    fun lockScreen() {
+        isScreenLocked = true
+        // 禁用本地触摸输入，但允许远程控制继续工作
+        Log.d(logTag, "Screen locked, local touch input disabled")
+    }
+
+    fun unlockScreen() {
+        isScreenLocked = false
+        Log.d(logTag, "Screen unlocked, local touch input enabled")
+    }
 }
